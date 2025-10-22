@@ -1,0 +1,271 @@
+# Prometheus Recording Rules for Medical Metrics Aggregation
+# Pre-computed metrics for faster dashboard queries and SLO calculation
+
+groups:
+  - name: medical_analysis_aggregations
+    interval: 30s
+    rules:
+      # Medical Analysis Success Rate
+      - record: medical_analysis:success_rate:5m
+        expr: |
+          sum(rate(medical_analysis_total{status="success"}[5m]))
+          /
+          sum(rate(medical_analysis_total[5m]))
+
+      # Medical Analysis P50 Duration
+      - record: medical_analysis:duration_seconds:p50
+        expr: |
+          histogram_quantile(0.50,
+            sum(rate(medical_analysis_duration_seconds_bucket[5m])) by (le, intention)
+          )
+
+      # Medical Analysis P95 Duration
+      - record: medical_analysis:duration_seconds:p95
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(medical_analysis_duration_seconds_bucket[5m])) by (le, intention)
+          )
+
+      # Medical Analysis P99 Duration
+      - record: medical_analysis:duration_seconds:p99
+        expr: |
+          histogram_quantile(0.99,
+            sum(rate(medical_analysis_duration_seconds_bucket[5m])) by (le, intention)
+          )
+
+      # Manual Review Rate
+      - record: medical_analysis:manual_review_rate:5m
+        expr: |
+          sum(rate(medical_analysis_manual_review_required_total[5m]))
+          /
+          sum(rate(medical_analysis_total[5m]))
+
+      # Average Confidence Score
+      - record: medical_analysis:confidence_score:avg
+        expr: |
+          sum(rate(medical_analysis_confidence_score_sum[5m]))
+          /
+          sum(rate(medical_analysis_confidence_score_count[5m]))
+
+      # Low Confidence Rate (<0.7)
+      - record: medical_analysis:low_confidence_rate:5m
+        expr: |
+          sum(rate(medical_analysis_confidence_score_bucket{le="0.7"}[5m]))
+          /
+          sum(rate(medical_analysis_confidence_score_count[5m]))
+
+  - name: workflow_aggregations
+    interval: 30s
+    rules:
+      # LangGraph Workflow Success Rate
+      - record: langgraph_workflow:success_rate:5m
+        expr: |
+          sum(rate(langgraph_workflow_executions_total{status="success"}[5m]))
+          /
+          sum(rate(langgraph_workflow_executions_total[5m]))
+
+      # LangGraph Agent Execution Rate
+      - record: langgraph_agent:execution_rate:5m
+        expr: |
+          sum(rate(langgraph_agent_execution_total[5m])) by (agent_type)
+
+      # LangGraph Workflow P95 Duration
+      - record: langgraph_workflow:duration_seconds:p95
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(langgraph_workflow_duration_seconds_bucket[5m])) by (le, intention)
+          )
+
+      # Fallback Activation Rate
+      - record: langgraph_workflow:fallback_rate:5m
+        expr: |
+          sum(rate(langgraph_workflow_fallback_activations_total[5m]))
+          /
+          sum(rate(langgraph_workflow_executions_total[5m]))
+
+  - name: session_aggregations
+    interval: 30s
+    rules:
+      # Active Medical Sessions
+      - record: medical_sessions:active:current
+        expr: |
+          sum(medical_sessions_active)
+
+      # Session Creation Rate
+      - record: medical_sessions:creation_rate:5m
+        expr: |
+          sum(rate(medical_sessions_created_total[5m]))
+
+      # Session Timeout Violation Rate
+      - record: medical_sessions:timeout_violation_rate:5m
+        expr: |
+          sum(rate(medical_session_timeout_violations_total[5m]))
+          /
+          sum(rate(medical_sessions_created_total[5m]))
+
+      # Average Session Duration
+      - record: medical_sessions:duration_seconds:avg
+        expr: |
+          sum(rate(medical_session_duration_seconds_sum[5m]))
+          /
+          sum(rate(medical_session_duration_seconds_count[5m]))
+
+  - name: compliance_aggregations
+    interval: 60s
+    rules:
+      # RUT Validation Success Rate
+      - record: chilean_rut:validation_success_rate:10m
+        expr: |
+          sum(rate(chilean_rut_validation_total{status="success"}[10m]))
+          /
+          sum(rate(chilean_rut_validation_total[10m]))
+
+      # Medical License Verification Success Rate
+      - record: medical_license:verification_success_rate:10m
+        expr: |
+          sum(rate(medical_license_verification_total{status="success"}[10m]))
+          /
+          sum(rate(medical_license_verification_total[10m]))
+
+      # Data Access Violation Rate
+      - record: medical_data:access_violation_rate:10m
+        expr: |
+          sum(rate(medical_data_access_violations_total[10m]))
+          /
+          sum(rate(medical_data_access_total[10m]))
+
+      # Encryption Compliance Percentage
+      - record: medical_data:encryption_compliance:current
+        expr: |
+          medical_data_encryption_compliance_percentage
+
+      # Audit Log Entry Rate
+      - record: audit_log:entry_rate:10m
+        expr: |
+          sum(rate(audit_log_entries_total[10m]))
+
+  - name: api_aggregations
+    interval: 30s
+    rules:
+      # Claude API Request Rate
+      - record: claude_api:request_rate:5m
+        expr: |
+          sum(rate(claude_api_requests_total[5m])) by (status)
+
+      # Claude API Success Rate
+      - record: claude_api:success_rate:5m
+        expr: |
+          sum(rate(claude_api_requests_total{status=~"2.."}[5m]))
+          /
+          sum(rate(claude_api_requests_total[5m]))
+
+      # Claude API P95 Duration
+      - record: claude_api:duration_seconds:p95
+        expr: |
+          histogram_quantile(0.95,
+            rate(claude_api_request_duration_seconds_bucket[5m])
+          )
+
+      # Google Healthcare API Request Rate
+      - record: google_healthcare_api:request_rate:5m
+        expr: |
+          sum(rate(google_healthcare_api_requests_total[5m])) by (operation)
+
+      # Google Healthcare API Success Rate
+      - record: google_healthcare_api:success_rate:5m
+        expr: |
+          sum(rate(google_healthcare_api_requests_total{status="success"}[5m]))
+          /
+          sum(rate(google_healthcare_api_requests_total[5m]))
+
+      # Supabase Query P95 Duration
+      - record: supabase_query:duration_seconds:p95
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(supabase_query_duration_seconds_bucket[5m])) by (le, operation)
+          )
+
+  - name: circuit_breaker_aggregations
+    interval: 15s
+    rules:
+      # Circuit Breaker Open Count
+      - record: circuit_breaker:open_count:current
+        expr: |
+          sum(circuit_breaker_state{state="open"}) by (service)
+
+      # Circuit Breaker Trip Rate
+      - record: circuit_breaker:trip_rate:5m
+        expr: |
+          sum(rate(circuit_breaker_trips_total[5m])) by (service)
+
+      # Prevented Requests (due to open circuit)
+      - record: circuit_breaker:prevented_requests:5m
+        expr: |
+          sum(rate(circuit_breaker_prevented_requests_total[5m])) by (service)
+
+  - name: mobile_sync_aggregations
+    interval: 30s
+    rules:
+      # Mobile Sync Success Rate
+      - record: mobile_sync:success_rate:10m
+        expr: |
+          sum(rate(mobile_sync_attempts_total{status="success"}[10m]))
+          /
+          sum(rate(mobile_sync_attempts_total[10m]))
+
+      # Mobile Sync Queue Size
+      - record: mobile_sync:queue_size:current
+        expr: |
+          sum(mobile_sync_queue_size)
+
+      # Mobile Sync P95 Duration
+      - record: mobile_sync:duration_seconds:p95
+        expr: |
+          histogram_quantile(0.95,
+            rate(mobile_sync_duration_seconds_bucket[10m])
+          )
+
+  - name: slo_calculations
+    interval: 60s
+    rules:
+      # Medical Analysis SLO (95% < 30s)
+      - record: slo:medical_analysis_duration:compliance
+        expr: |
+          (
+            sum(rate(medical_analysis_duration_seconds_bucket{le="30"}[1h]))
+            /
+            sum(rate(medical_analysis_duration_seconds_count[1h]))
+          ) * 100
+
+      # Patient Lookup SLO (99% < 3s)
+      - record: slo:patient_lookup_duration:compliance
+        expr: |
+          (
+            sum(rate(supabase_query_duration_seconds_bucket{operation="patient_lookup",le="3"}[1h]))
+            /
+            sum(rate(supabase_query_duration_seconds_count{operation="patient_lookup"}[1h]))
+          ) * 100
+
+      # System Availability SLO (99.5% uptime)
+      - record: slo:system_availability:compliance
+        expr: |
+          (
+            sum(up{job=~"thecarebot-.*"})
+            /
+            count(up{job=~"thecarebot-.*"})
+          ) * 100
+
+      # Error Budget Remaining (30-day window)
+      - record: slo:error_budget:remaining_percentage
+        expr: |
+          (
+            1 - (
+              (
+                1 - (
+                  sum(rate(http_requests_total{status=~"2.."}[30d]))
+                  /
+                  sum(rate(http_requests_total[30d]))
+                )
+              ) / 0.005
+            )
+          ) * 100

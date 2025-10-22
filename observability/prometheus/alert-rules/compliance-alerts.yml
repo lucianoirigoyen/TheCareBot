@@ -1,0 +1,206 @@
+# Chilean Medical Compliance Alert Rules
+# CRITICAL: Regulatory compliance monitoring for Chilean Law 19.628
+
+groups:
+  - name: chilean_compliance
+    interval: 30s
+    rules:
+      # Session Timeout Violation
+      - alert: SessionTimeoutViolation
+        expr: |
+          increase(medical_session_timeout_violations_total[5m]) > 0
+        labels:
+          severity: critical
+          category: regulatory_violation
+          regulatory: chilean_law_19628
+          requires_audit: "true"
+        annotations:
+          summary: "Medical session timeout violation detected"
+          description: "{{ $value }} sessions exceeded the mandatory 20-minute timeout in the last 5 minutes. This is a Chilean Law 19.628 violation."
+          runbook: "https://docs.thecarebot.com/runbooks/session-timeout-violation"
+          compliance_action: "Immediate investigation and audit log review required"
+
+      # Unauthorized Data Access Attempt
+      - alert: UnauthorizedDataAccessAttempt
+        expr: |
+          increase(medical_data_access_violations_total[1m]) > 0
+        labels:
+          severity: emergency
+          category: security_violation
+          regulatory: chilean_law_19628
+          requires_audit: "true"
+        annotations:
+          summary: "EMERGENCY: Unauthorized medical data access attempt"
+          description: "{{ $value }} unauthorized attempts to access medical data in the last minute."
+          runbook: "https://docs.thecarebot.com/runbooks/unauthorized-access"
+          compliance_action: "Immediate security team notification required"
+
+      # Chilean RUT Validation Failure Rate
+      - alert: HighRUTValidationFailureRate
+        expr: |
+          (
+            sum(rate(chilean_rut_validation_failures_total[10m]))
+            /
+            sum(rate(chilean_rut_validation_total[10m]))
+          ) > 0.1
+        for: 10m
+        labels:
+          severity: warning
+          category: data_quality
+          regulatory: chilean_law_19628
+        annotations:
+          summary: "High Chilean RUT validation failure rate (>10%)"
+          description: "{{ $value | humanizePercentage }} of RUT validations are failing. Expected <10%."
+          runbook: "https://docs.thecarebot.com/runbooks/rut-validation-failures"
+
+      # Medical License Verification Failure
+      - alert: MedicalLicenseVerificationFailure
+        expr: |
+          increase(medical_license_verification_failures_total[5m]) > 5
+        for: 5m
+        labels:
+          severity: high
+          category: authentication_failure
+          regulatory: chilean_medical_registry
+        annotations:
+          summary: "Multiple medical license verification failures"
+          description: "{{ $value }} license verifications failed in the last 5 minutes."
+          runbook: "https://docs.thecarebot.com/runbooks/license-verification-failure"
+
+      # Data Encryption Compliance
+      - alert: DataEncryptionComplianceViolation
+        expr: |
+          medical_data_encryption_compliance_percentage < 100
+        for: 1m
+        labels:
+          severity: critical
+          category: data_protection
+          regulatory: chilean_law_19628
+        annotations:
+          summary: "CRITICAL: Medical data encryption compliance below 100%"
+          description: "{{ $value }}% of medical data is encrypted. Chilean Law 19.628 requires 100%."
+          runbook: "https://docs.thecarebot.com/runbooks/encryption-compliance"
+          compliance_action: "Immediate investigation and remediation required"
+
+      # Audit Log Integrity Violation
+      - alert: AuditLogIntegrityViolation
+        expr: |
+          increase(audit_log_integrity_violations_total[5m]) > 0
+        labels:
+          severity: emergency
+          category: audit_violation
+          regulatory: chilean_law_19628
+        annotations:
+          summary: "EMERGENCY: Audit log integrity violation detected"
+          description: "{{ $value }} audit log integrity violations detected. Possible tampering."
+          runbook: "https://docs.thecarebot.com/runbooks/audit-log-tampering"
+          compliance_action: "Immediate forensic investigation required"
+
+  - name: session_management_compliance
+    interval: 30s
+    rules:
+      # Active Sessions Exceeding Limit
+      - alert: TooManyActiveSessions
+        expr: |
+          medical_sessions_active > 100
+        for: 5m
+        labels:
+          severity: warning
+          category: capacity_management
+        annotations:
+          summary: "High number of active medical sessions (>100)"
+          description: "{{ $value }} active sessions. System designed for max 100 concurrent sessions."
+          runbook: "https://docs.thecarebot.com/runbooks/high-session-count"
+
+      # Session Duration Anomaly
+      - alert: AbnormalSessionDuration
+        expr: |
+          histogram_quantile(0.95,
+            rate(medical_session_duration_seconds_bucket[10m])
+          ) > 1200
+        for: 10m
+        labels:
+          severity: info
+          category: session_behavior
+        annotations:
+          summary: "Abnormally long session durations detected"
+          description: "95% of sessions are lasting longer than 20 minutes ({{ $value }}s). Verify timeout mechanism."
+
+      # Session Warning Not Delivered
+      - alert: SessionWarningNotDelivered
+        expr: |
+          increase(medical_session_warning_failures_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: high
+          category: session_management
+        annotations:
+          summary: "Multiple session timeout warnings failed to deliver"
+          description: "{{ $value }} session warnings failed to deliver in 5 minutes. Users may be surprised by timeouts."
+
+  - name: data_residency_compliance
+    interval: 60s
+    rules:
+      # Data Residency Violation
+      - alert: DataResidencyViolation
+        expr: |
+          increase(medical_data_residency_violations_total[5m]) > 0
+        labels:
+          severity: critical
+          category: data_residency
+          regulatory: chilean_law_19628
+          requires_audit: "true"
+        annotations:
+          summary: "CRITICAL: Data residency violation detected"
+          description: "{{ $value }} instances of medical data leaving Chilean-approved regions."
+          runbook: "https://docs.thecarebot.com/runbooks/data-residency-violation"
+          compliance_action: "Immediate data repatriation required"
+
+      # Cross-Border Data Transfer Without Approval
+      - alert: UnauthorizedCrossBorderTransfer
+        expr: |
+          increase(medical_data_cross_border_transfers_total{approved="false"}[5m]) > 0
+        labels:
+          severity: emergency
+          category: data_transfer
+          regulatory: chilean_law_19628
+        annotations:
+          summary: "EMERGENCY: Unauthorized cross-border data transfer"
+          description: "{{ $value }} unauthorized cross-border transfers detected."
+          runbook: "https://docs.thecarebot.com/runbooks/unauthorized-cross-border-transfer"
+
+  - name: audit_compliance
+    interval: 60s
+    rules:
+      # Missing Audit Log Entries
+      - alert: MissingAuditLogEntries
+        expr: |
+          rate(medical_data_access_total[5m]) > 0
+          and
+          rate(audit_log_entries_total[5m]) == 0
+        for: 5m
+        labels:
+          severity: critical
+          category: audit_compliance
+          regulatory: chilean_law_19628
+        annotations:
+          summary: "CRITICAL: Medical data accessed without audit log"
+          description: "Medical data is being accessed but audit logs are not being generated."
+          runbook: "https://docs.thecarebot.com/runbooks/missing-audit-logs"
+
+      # Audit Log Storage Capacity
+      - alert: AuditLogStorageCapacityLow
+        expr: |
+          (
+            audit_log_storage_used_bytes
+            /
+            audit_log_storage_total_bytes
+          ) > 0.85
+        for: 30m
+        labels:
+          severity: warning
+          category: storage_capacity
+        annotations:
+          summary: "Audit log storage capacity running low (>85%)"
+          description: "Audit log storage is {{ $value | humanizePercentage }} full."
+          runbook: "https://docs.thecarebot.com/runbooks/audit-log-storage-low"

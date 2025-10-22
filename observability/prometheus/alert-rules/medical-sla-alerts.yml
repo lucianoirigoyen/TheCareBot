@@ -1,0 +1,171 @@
+# Medical SLA Alert Rules for TheCareBot
+# CRITICAL: These alerts monitor medical analysis performance against Chilean regulatory SLAs
+
+groups:
+  - name: medical_analysis_sla
+    interval: 15s
+    rules:
+      # Medical Analysis Duration SLA Violation
+      - alert: MedicalAnalysisSLAViolation
+        expr: |
+          histogram_quantile(0.95,
+            rate(medical_analysis_duration_seconds_bucket[5m])
+          ) > 30
+        for: 5m
+        labels:
+          severity: critical
+          category: medical_sla
+          regulatory: chilean_law_19628
+        annotations:
+          summary: "Medical analysis SLA violated (95th percentile > 30s)"
+          description: "95% of medical analyses are taking longer than 30 seconds. Current P95: {{ $value }}s. SLA requires completion within 30 seconds."
+          runbook: "https://docs.thecarebot.com/runbooks/medical-analysis-sla-violation"
+
+      # High Manual Review Rate Alert
+      - alert: HighManualReviewRate
+        expr: |
+          (
+            sum(rate(medical_analysis_manual_review_required_total[10m]))
+            /
+            sum(rate(medical_analysis_total[10m]))
+          ) > 0.3
+        for: 10m
+        labels:
+          severity: warning
+          category: medical_quality
+        annotations:
+          summary: "High manual review rate detected (>30%)"
+          description: "{{ $value | humanizePercentage }} of medical analyses require manual review. Expected <30%."
+          runbook: "https://docs.thecarebot.com/runbooks/high-manual-review-rate"
+
+      # Low Confidence Score Alert
+      - alert: LowConfidenceScoreSpike
+        expr: |
+          (
+            sum(rate(medical_analysis_confidence_score_bucket{le="0.7"}[5m]))
+            /
+            sum(rate(medical_analysis_confidence_score_count[5m]))
+          ) > 0.15
+        for: 5m
+        labels:
+          severity: warning
+          category: medical_quality
+        annotations:
+          summary: "Spike in low confidence scores (<0.7)"
+          description: "{{ $value | humanizePercentage }} of analyses have confidence scores below 0.7. Expected <15%."
+
+      # Patient Lookup SLA Violation
+      - alert: PatientLookupSLAViolation
+        expr: |
+          histogram_quantile(0.99,
+            rate(supabase_query_duration_seconds_bucket{operation="patient_lookup"}[5m])
+          ) > 3
+        for: 5m
+        labels:
+          severity: high
+          category: database_sla
+        annotations:
+          summary: "Patient lookup SLA violated (99th percentile > 3s)"
+          description: "99% of patient lookups are taking longer than 3 seconds. Current P99: {{ $value }}s."
+          runbook: "https://docs.thecarebot.com/runbooks/patient-lookup-slow"
+
+      # Medical Analysis Failure Rate
+      - alert: HighMedicalAnalysisFailureRate
+        expr: |
+          (
+            sum(rate(medical_analysis_failures_total[5m]))
+            /
+            sum(rate(medical_analysis_total[5m]))
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          category: medical_reliability
+        annotations:
+          summary: "High medical analysis failure rate (>5%)"
+          description: "{{ $value | humanizePercentage }} of medical analyses are failing. Expected <5%."
+          runbook: "https://docs.thecarebot.com/runbooks/high-analysis-failure-rate"
+
+  - name: medical_workflow_sla
+    interval: 15s
+    rules:
+      # LangGraph Workflow Duration Alert
+      - alert: LangGraphWorkflowSlowdown
+        expr: |
+          histogram_quantile(0.95,
+            rate(langgraph_workflow_duration_seconds_bucket[5m])
+          ) > 8
+        for: 5m
+        labels:
+          severity: warning
+          category: workflow_performance
+        annotations:
+          summary: "LangGraph workflow execution slowdown"
+          description: "95% of workflow executions are taking longer than 8 seconds. Current P95: {{ $value }}s."
+          runbook: "https://docs.thecarebot.com/runbooks/langgraph-slowdown"
+
+      # LangGraph Agent Failure Rate
+      - alert: LangGraphAgentFailureRate
+        expr: |
+          (
+            sum(rate(langgraph_agent_execution_failures_total[5m]))
+            /
+            sum(rate(langgraph_agent_execution_total[5m]))
+          ) > 0.1
+        for: 5m
+        labels:
+          severity: high
+          category: workflow_reliability
+        annotations:
+          summary: "High LangGraph agent failure rate (>10%)"
+          description: "{{ $value | humanizePercentage }} of agent executions are failing."
+
+      # Image Analysis Timeout
+      - alert: ImageAnalysisTimeout
+        expr: |
+          histogram_quantile(0.95,
+            rate(medical_analysis_duration_seconds_bucket{type="radiography"}[5m])
+          ) > 30
+        for: 5m
+        labels:
+          severity: high
+          category: medical_imaging
+        annotations:
+          summary: "Medical image analysis timeout (>30s)"
+          description: "95% of radiography analyses are exceeding 30 seconds. Current P95: {{ $value }}s."
+
+  - name: system_availability_sla
+    interval: 30s
+    rules:
+      # System Uptime SLA
+      - alert: SystemUptimeSLAViolation
+        expr: |
+          (
+            sum(up{job=~"thecarebot-.*"})
+            /
+            count(up{job=~"thecarebot-.*"})
+          ) < 0.995
+        for: 5m
+        labels:
+          severity: critical
+          category: system_availability
+        annotations:
+          summary: "System uptime below 99.5% SLA"
+          description: "System availability is {{ $value | humanizePercentage }}. SLA requires 99.5%."
+          runbook: "https://docs.thecarebot.com/runbooks/system-downtime"
+
+      # Database Connection Pool Exhaustion
+      - alert: DatabaseConnectionPoolExhaustion
+        expr: |
+          (
+            sum(supabase_connection_pool_active)
+            /
+            sum(supabase_connection_pool_max)
+          ) > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          category: database_capacity
+        annotations:
+          summary: "Database connection pool nearly exhausted (>90%)"
+          description: "Connection pool utilization at {{ $value | humanizePercentage }}."

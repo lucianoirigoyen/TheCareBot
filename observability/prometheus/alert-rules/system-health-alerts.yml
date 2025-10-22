@@ -1,0 +1,272 @@
+# System Health Alert Rules for TheCareBot
+# Infrastructure and service health monitoring
+
+groups:
+  - name: circuit_breaker_health
+    interval: 15s
+    rules:
+      # Circuit Breaker Open State
+      - alert: CircuitBreakerOpen
+        expr: |
+          circuit_breaker_state{state="open"} == 1
+        for: 2m
+        labels:
+          severity: high
+          category: circuit_breaker
+        annotations:
+          summary: "Circuit breaker {{ $labels.service }} is OPEN"
+          description: "Circuit breaker for {{ $labels.service }} has been open for 2 minutes. Service is degraded."
+          runbook: "https://docs.thecarebot.com/runbooks/circuit-breaker-open"
+
+      # Circuit Breaker Half-Open State Stuck
+      - alert: CircuitBreakerHalfOpenStuck
+        expr: |
+          circuit_breaker_state{state="half_open"} == 1
+        for: 5m
+        labels:
+          severity: warning
+          category: circuit_breaker
+        annotations:
+          summary: "Circuit breaker {{ $labels.service }} stuck in half-open"
+          description: "Circuit breaker for {{ $labels.service }} has been half-open for 5 minutes. Recovery may be failing."
+
+      # High Circuit Breaker Trip Rate
+      - alert: HighCircuitBreakerTripRate
+        expr: |
+          rate(circuit_breaker_trips_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          category: circuit_breaker
+        annotations:
+          summary: "High circuit breaker trip rate for {{ $labels.service }}"
+          description: "Circuit breaker is tripping {{ $value | humanize }} times per second."
+
+  - name: api_health
+    interval: 15s
+    rules:
+      # Claude API High Latency
+      - alert: ClaudeAPIHighLatency
+        expr: |
+          histogram_quantile(0.95,
+            rate(claude_api_request_duration_seconds_bucket[5m])
+          ) > 10
+        for: 5m
+        labels:
+          severity: warning
+          category: external_api
+        annotations:
+          summary: "Claude API experiencing high latency"
+          description: "95% of Claude API requests are taking longer than 10 seconds. Current P95: {{ $value }}s."
+          runbook: "https://docs.thecarebot.com/runbooks/claude-api-slow"
+
+      # Claude API Error Rate
+      - alert: ClaudeAPIHighErrorRate
+        expr: |
+          (
+            sum(rate(claude_api_requests_total{status=~"5.."}[5m]))
+            /
+            sum(rate(claude_api_requests_total[5m]))
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: high
+          category: external_api
+        annotations:
+          summary: "High Claude API error rate (>5%)"
+          description: "{{ $value | humanizePercentage }} of Claude API requests are failing."
+          runbook: "https://docs.thecarebot.com/runbooks/claude-api-errors"
+
+      # Google Healthcare API Timeout
+      - alert: GoogleHealthcareAPITimeout
+        expr: |
+          increase(google_healthcare_api_timeouts_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: high
+          category: external_api
+        annotations:
+          summary: "Multiple Google Healthcare API timeouts"
+          description: "{{ $value }} Google Healthcare API timeouts in the last 5 minutes."
+          runbook: "https://docs.thecarebot.com/runbooks/google-healthcare-timeout"
+
+      # Supabase Query Slowdown
+      - alert: SupabaseQuerySlowdown
+        expr: |
+          histogram_quantile(0.95,
+            rate(supabase_query_duration_seconds_bucket[5m])
+          ) > 3
+        for: 5m
+        labels:
+          severity: warning
+          category: database_performance
+        annotations:
+          summary: "Supabase queries experiencing slowdown"
+          description: "95% of Supabase queries are taking longer than 3 seconds. Current P95: {{ $value }}s."
+          runbook: "https://docs.thecarebot.com/runbooks/supabase-slow-queries"
+
+  - name: resource_health
+    interval: 30s
+    rules:
+      # High Memory Usage
+      - alert: HighMemoryUsage
+        expr: |
+          (
+            node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes
+          ) / node_memory_MemTotal_bytes > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          category: resource_utilization
+        annotations:
+          summary: "High memory usage (>90%)"
+          description: "Memory usage is {{ $value | humanizePercentage }}."
+          runbook: "https://docs.thecarebot.com/runbooks/high-memory-usage"
+
+      # High CPU Usage
+      - alert: HighCPUUsage
+        expr: |
+          100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 10m
+        labels:
+          severity: warning
+          category: resource_utilization
+        annotations:
+          summary: "High CPU usage (>80%)"
+          description: "CPU usage is {{ $value }}% on {{ $labels.instance }}."
+          runbook: "https://docs.thecarebot.com/runbooks/high-cpu-usage"
+
+      # Disk Space Low
+      - alert: DiskSpaceLow
+        expr: |
+          (
+            node_filesystem_avail_bytes{mountpoint="/"}
+            /
+            node_filesystem_size_bytes{mountpoint="/"}
+          ) < 0.1
+        for: 5m
+        labels:
+          severity: critical
+          category: storage_capacity
+        annotations:
+          summary: "Disk space critically low (<10%)"
+          description: "Only {{ $value | humanizePercentage }} disk space remaining."
+          runbook: "https://docs.thecarebot.com/runbooks/disk-space-low"
+
+  - name: mobile_sync_health
+    interval: 30s
+    rules:
+      # Mobile Sync Failure Rate
+      - alert: HighMobileSyncFailureRate
+        expr: |
+          (
+            sum(rate(mobile_sync_failures_total[10m]))
+            /
+            sum(rate(mobile_sync_attempts_total[10m]))
+          ) > 0.1
+        for: 10m
+        labels:
+          severity: warning
+          category: mobile_sync
+        annotations:
+          summary: "High mobile sync failure rate (>10%)"
+          description: "{{ $value | humanizePercentage }} of mobile syncs are failing."
+          runbook: "https://docs.thecarebot.com/runbooks/mobile-sync-failures"
+
+      # Mobile Sync Queue Backlog
+      - alert: MobileSyncQueueBacklog
+        expr: |
+          mobile_sync_queue_size > 1000
+        for: 15m
+        labels:
+          severity: warning
+          category: mobile_sync
+        annotations:
+          summary: "Large mobile sync queue backlog (>1000)"
+          description: "{{ $value }} items in mobile sync queue."
+          runbook: "https://docs.thecarebot.com/runbooks/mobile-sync-backlog"
+
+  - name: langgraph_workflow_health
+    interval: 15s
+    rules:
+      # LangGraph Workflow High Error Rate
+      - alert: LangGraphWorkflowHighErrorRate
+        expr: |
+          (
+            sum(rate(langgraph_workflow_failures_total[5m]))
+            /
+            sum(rate(langgraph_workflow_executions_total[5m]))
+          ) > 0.1
+        for: 5m
+        labels:
+          severity: high
+          category: workflow_reliability
+        annotations:
+          summary: "High LangGraph workflow error rate (>10%)"
+          description: "{{ $value | humanizePercentage }} of workflow executions are failing."
+          runbook: "https://docs.thecarebot.com/runbooks/langgraph-workflow-errors"
+
+      # LangGraph Agent Timeout
+      - alert: LangGraphAgentTimeout
+        expr: |
+          increase(langgraph_agent_timeouts_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+          category: workflow_performance
+        annotations:
+          summary: "Multiple LangGraph agent timeouts"
+          description: "{{ $value }} agent timeouts in the last 5 minutes."
+
+      # LangGraph Workflow Queue Backlog
+      - alert: LangGraphWorkflowQueueBacklog
+        expr: |
+          langgraph_workflow_queue_size > 50
+        for: 10m
+        labels:
+          severity: warning
+          category: workflow_capacity
+        annotations:
+          summary: "Large LangGraph workflow queue (>50)"
+          description: "{{ $value }} workflows queued for execution."
+
+  - name: error_budget_health
+    interval: 60s
+    rules:
+      # Error Budget Exhaustion Warning
+      - alert: ErrorBudgetExhaustionWarning
+        expr: |
+          (
+            1 - (
+              sum(rate(http_requests_total{status=~"2.."}[30d]))
+              /
+              sum(rate(http_requests_total[30d]))
+            )
+          ) / 0.005 > 0.8
+        for: 1h
+        labels:
+          severity: warning
+          category: slo_compliance
+        annotations:
+          summary: "Error budget 80% exhausted for 30-day period"
+          description: "{{ $value | humanizePercentage }} of error budget consumed. SLO at risk."
+          runbook: "https://docs.thecarebot.com/runbooks/error-budget-exhaustion"
+
+      # Error Budget Exhausted
+      - alert: ErrorBudgetExhausted
+        expr: |
+          (
+            1 - (
+              sum(rate(http_requests_total{status=~"2.."}[30d]))
+              /
+              sum(rate(http_requests_total[30d]))
+            )
+          ) / 0.005 > 1.0
+        for: 30m
+        labels:
+          severity: critical
+          category: slo_compliance
+        annotations:
+          summary: "CRITICAL: Error budget exhausted for 30-day period"
+          description: "Error budget completely exhausted. SLO violated."
+          runbook: "https://docs.thecarebot.com/runbooks/error-budget-exhausted"

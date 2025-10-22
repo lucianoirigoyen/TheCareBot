@@ -1,0 +1,131 @@
+# Prometheus Configuration for TheCareBot Medical System
+# Production-ready monitoring for Chilean medical compliance and system performance
+
+global:
+  scrape_interval: 15s
+  scrape_timeout: 10s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'thecarebot-production'
+    environment: 'production'
+    region: 'chile-central'
+
+# Alertmanager configuration for medical alerts
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - 'alertmanager:9093'
+      timeout: 10s
+      api_version: v2
+
+# Load alert rules
+rule_files:
+  - 'alert-rules/medical-sla-alerts.yml'
+  - 'alert-rules/compliance-alerts.yml'
+  - 'alert-rules/system-health-alerts.yml'
+  - 'recording-rules/medical-metrics-aggregations.yml'
+
+# Scrape configurations
+scrape_configs:
+  # TheCareBot Web Application Metrics
+  - job_name: 'thecarebot-web'
+    scrape_interval: 5s
+    scrape_timeout: 5s
+    metrics_path: '/api/metrics/prometheus'
+    static_configs:
+      - targets:
+          - 'localhost:3000'
+        labels:
+          service: 'thecarebot-web'
+          tier: 'frontend'
+
+  # Supabase Database Metrics
+  - job_name: 'supabase-postgres'
+    scrape_interval: 10s
+    metrics_path: '/metrics'
+    static_configs:
+      - targets:
+          - 'supabase-db:9187'
+        labels:
+          service: 'supabase-postgres'
+          tier: 'database'
+
+  # LangGraph Medical Workflow Metrics
+  - job_name: 'langgraph-workflows'
+    scrape_interval: 5s
+    metrics_path: '/api/workflows/metrics'
+    static_configs:
+      - targets:
+          - 'localhost:3001'
+        labels:
+          service: 'langgraph-workflows'
+          tier: 'backend'
+          medical: 'true'
+
+  # Claude API Client Metrics
+  - job_name: 'claude-api-client'
+    scrape_interval: 10s
+    metrics_path: '/api/metrics/claude'
+    static_configs:
+      - targets:
+          - 'localhost:3000'
+        labels:
+          service: 'claude-api'
+          tier: 'external'
+
+  # Google Healthcare API Metrics
+  - job_name: 'google-healthcare-api'
+    scrape_interval: 10s
+    metrics_path: '/api/metrics/google-healthcare'
+    static_configs:
+      - targets:
+          - 'localhost:3000'
+        labels:
+          service: 'google-healthcare-api'
+          tier: 'external'
+
+  # Mobile Sync Service Metrics
+  - job_name: 'mobile-sync-service'
+    scrape_interval: 15s
+    metrics_path: '/api/metrics/mobile-sync'
+    static_configs:
+      - targets:
+          - 'localhost:3002'
+        labels:
+          service: 'mobile-sync'
+          tier: 'mobile'
+
+  # Chilean Compliance Metrics
+  - job_name: 'compliance-monitoring'
+    scrape_interval: 30s
+    metrics_path: '/api/metrics/compliance'
+    static_configs:
+      - targets:
+          - 'localhost:3000'
+        labels:
+          service: 'compliance-monitoring'
+          tier: 'security'
+          regulatory: 'chilean-law-19628'
+
+  # Node Exporter for System Metrics
+  - job_name: 'node-exporter'
+    scrape_interval: 15s
+    static_configs:
+      - targets:
+          - 'localhost:9100'
+        labels:
+          service: 'node-exporter'
+          tier: 'infrastructure'
+
+# Remote write for long-term storage (optional)
+# remote_write:
+#   - url: "https://prometheus-remote-write.example.com/api/v1/write"
+#     queue_config:
+#       capacity: 10000
+#       max_shards: 5
+#       max_samples_per_send: 1000
+
+# Remote read for long-term storage (optional)
+# remote_read:
+#   - url: "https://prometheus-remote-read.example.com/api/v1/read"
