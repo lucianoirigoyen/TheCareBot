@@ -16,6 +16,7 @@ export function MedicalHeader({ doctorName, specialty, activeTab, onTabChange }:
     { id: 'patient', label: '👤 Buscar Paciente', description: 'Búsqueda por RUT' },
     { id: 'excel', label: '📊 Análisis Excel', description: 'Análisis de planillas' },
     { id: 'radiography', label: '🩻 Radiografías', description: 'Análisis de imágenes' },
+    { id: 'facturacion', label: '🧾 Facturación SII', description: 'Boletas y facturas electrónicas', isExternal: true, href: '/facturacion/nueva' },
   ] as const
 
   return (
@@ -39,22 +40,39 @@ export function MedicalHeader({ doctorName, specialty, activeTab, onTabChange }:
       </div>
       
       <nav className="flex space-x-1">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => onTabChange(tab.id as any)}
-            className={`
-              px-4 py-2 rounded-lg font-medium transition-all duration-200
-              ${activeTab === tab.id 
-                ? 'bg-white text-medical-600 shadow-md' 
-                : 'text-blue-100 hover:bg-white/10 hover:text-white'
-              }
-            `}
-            title={tab.description}
-          >
-            {tab.label}
-          </button>
-        ))}
+        {tabs.map((tab) => {
+          // External link (facturación)
+          if ('isExternal' in tab && tab.isExternal) {
+            return (
+              <a
+                key={tab.id}
+                href={tab.href}
+                className="px-4 py-2 rounded-lg font-medium transition-all duration-200 text-blue-100 hover:bg-white/10 hover:text-white"
+                title={tab.description}
+              >
+                {tab.label}
+              </a>
+            );
+          }
+
+          // Internal tab
+          return (
+            <button
+              key={tab.id}
+              onClick={() => onTabChange(tab.id as any)}
+              className={`
+                px-4 py-2 rounded-lg font-medium transition-all duration-200
+                ${activeTab === tab.id
+                  ? 'bg-white text-medical-600 shadow-md'
+                  : 'text-blue-100 hover:bg-white/10 hover:text-white'
+                }
+              `}
+              title={tab.description}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
       </nav>
     </header>
   )

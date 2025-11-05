@@ -221,7 +221,7 @@ export function MedicalDashboard({ onTabChange }: MedicalDashboardProps) {
           </div>
           <div className="flex items-center space-x-2">
             <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-            <span className="text-sm">Workflows n8n</span>
+            <span className="text-sm">LangGraph Workflows</span>
           </div>
           <div className="flex items-center space-x-2">
             <div className="w-3 h-3 bg-green-500 rounded-full"></div>

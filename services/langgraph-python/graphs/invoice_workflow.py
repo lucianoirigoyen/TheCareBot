@@ -32,10 +32,18 @@ def assign_folio(state: InvoiceWorkflowState) -> InvoiceWorkflowState:
         # Get company RUT from environment
         empresa_rut = os.getenv("EMPRESA_RUT", "12345678-9")
 
-        folio = supabase_client.get_next_folio(
-            tipo_dte=state["tipo_dte"],
-            rut_empresa=empresa_rut
-        )
+        # Try to get folio from Supabase, fallback to demo mode
+        try:
+            folio = supabase_client.get_next_folio(
+                tipo_dte=state["tipo_dte"],
+                rut_empresa=empresa_rut
+            )
+        except Exception as db_error:
+            print(f"Error getting next folio: {db_error}")
+            print("[Invoice] Falling back to DEMO mode (no database)")
+            # Demo mode: generate random folio
+            import random
+            folio = random.randint(1000, 9999)
 
         if folio is None:
             return {
@@ -301,34 +309,38 @@ def send_to_sii(state: InvoiceWorkflowState) -> InvoiceWorkflowState:
         # For MVP: mock SII response
         # In production: use SOAP API with circuit breaker
 
-        # Save to database
+        # Try to save to database, fallback to demo mode
         emisor_rut = os.getenv("EMPRESA_RUT", "12345678-9")
 
-        invoice_id = supabase_client.save_invoice(
-            tipo_dte=state["tipo_dte"],
-            folio=state["folio"],
-            emisor_rut=emisor_rut,
-            receptor_rut=state["receptor_rut"],
-            monto_neto=state["monto_neto"],
-            monto_iva=state["monto_iva"],
-            monto_total=state["monto_total"],
-            xml_dte=state["xml_signed"],
-            track_id=state["track_id"],
-            estado_sii="aceptado"  # Mock: always accepted in MVP
-        )
+        try:
+            invoice_id = supabase_client.save_invoice(
+                tipo_dte=state["tipo_dte"],
+                folio=state["folio"],
+                emisor_rut=emisor_rut,
+                receptor_rut=state["receptor_rut"],
+                monto_neto=state["monto_neto"],
+                monto_iva=state["monto_iva"],
+                monto_total=state["monto_total"],
+                xml_dte=state["xml_signed"],
+                track_id=state["track_id"],
+                estado_sii="aceptado"  # Mock: always accepted in MVP
+            )
 
-        # Log operation
-        supabase_client.log_sii_operation(
-            doctor_id=state["doctor_id"],
-            tipo_operacion="enviar_sii",
-            documento_tipo=state["tipo_dte"],
-            documento_folio=state["folio"],
-            track_id=state["track_id"],
-            estado="exito",
-            mensaje="Documento enviado exitosamente (MVP mock)",
-            duracion_ms=500,
-            metadata={"invoice_id": invoice_id}
-        )
+            # Log operation
+            supabase_client.log_sii_operation(
+                doctor_id=state["doctor_id"],
+                tipo_operacion="enviar_sii",
+                documento_tipo=state["tipo_dte"],
+                documento_folio=state["folio"],
+                track_id=state["track_id"],
+                estado="exito",
+                mensaje="Documento enviado exitosamente (MVP mock)",
+                duracion_ms=500,
+                metadata={"invoice_id": invoice_id}
+            )
+        except Exception as db_error:
+            print(f"[Invoice] Database save failed: {db_error}")
+            print("[Invoice] Running in DEMO mode (no database persistence)")
 
         print(f"[Invoice] Sent to SII. Track ID: {state['track_id']}")
 

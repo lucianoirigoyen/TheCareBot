@@ -180,7 +180,7 @@ async def predict_with_ai_agent(
     contexto: Dict
 ) -> List[Dict]:
     """
-    Use Claude AI directly to predict autofill values (simplified version).
+    Use Claude AI directly to predict autofill values.
 
     Args:
         patterns: Historical patterns from database
@@ -191,10 +191,96 @@ async def predict_with_ai_agent(
         List of predictions: [{"valor": "...", "confidence": 0.9, ...}, ...]
     """
 
-    # Por ahora retornamos lista vacía ya que AgentExecutor no está disponible
-    # En producción esto usaría Claude con tool-calling
-    print("[AI Agent] Using fallback - AgentExecutor not available")
-    return []
+    if not patterns:
+        print("[AI Agent] No patterns provided")
+        return []
+
+    # Check if API key is configured
+    if not os.getenv("ANTHROPIC_API_KEY"):
+        print("[AI Agent] ANTHROPIC_API_KEY not set, using fallback")
+        from autofill_predictor import predict_autofill_simple
+        return predict_autofill_simple(patterns, current_value, contexto)
+
+    # Prepare data for Claude (limit to top 15 to save tokens)
+    patterns_summary = []
+    for p in patterns[:15]:
+        patterns_summary.append({
+            "valor": p.get("valor", ""),
+            "frecuencia": p.get("frecuencia", 0),
+            "contexto": p.get("contexto", {})
+        })
+
+    # Create prompt for Claude
+    prompt_content = f"""Eres un asistente de autocompletado inteligente para un sistema de facturación dental chileno.
+
+Analiza estos patrones históricos y predice los valores más probables que el doctor ingresará:
+
+PATRONES HISTÓRICOS:
+{json.dumps(patterns_summary, indent=2, ensure_ascii=False)}
+
+ENTRADA ACTUAL DEL USUARIO: "{current_value}"
+
+CONTEXTO ACTUAL:
+{json.dumps(contexto, indent=2, ensure_ascii=False)}
+
+ESTRATEGIA DE PREDICCIÓN:
+1. Frecuencia (40%): Valores más usados tienen mayor confianza
+2. Contexto (30%): Coincidencia de día de semana y período del día
+3. Similaridad (30%): Qué tan cercano está al input actual
+
+REGLAS:
+- Solo incluir predicciones con confidence >= 0.6
+- Ordenar por confidence descendente
+- Máximo 5 predicciones
+- Para confidence >= 0.8, agregar emoji 📊
+
+FORMATO DE SALIDA (JSON válido):
+[
+  {{
+    "valor": "Limpieza dental",
+    "confidence": 0.92,
+    "frecuencia": 45,
+    "contexto_match": true,
+    "reasoning": "Alta frecuencia (45 usos), coincide con patrón de lunes, match exacto de prefijo",
+    "icon": "🤖📊"
+  }}
+]
+
+Retorna SOLO el array JSON, sin texto adicional."""
+
+    try:
+        # Invoke Claude directly
+        from langchain_core.messages import HumanMessage
+
+        print("[AI Agent] Invoking Claude AI for predictions...")
+        response = await llm.ainvoke([HumanMessage(content=prompt_content)])
+
+        # Parse JSON response
+        response_text = response.content.strip()
+
+        # Remove markdown code blocks if present
+        if response_text.startswith("```"):
+            lines = response_text.split("\n")
+            response_text = "\n".join(lines[1:-1])
+            if response_text.startswith("json"):
+                response_text = response_text[4:].strip()
+
+        predictions = json.loads(response_text)
+
+        # Validate and return
+        if isinstance(predictions, list):
+            print(f"[AI Agent] ✅ Claude AI generated {len(predictions)} predictions")
+            return predictions[:5]
+        else:
+            print("[AI Agent] Invalid response format, using fallback")
+            from autofill_predictor import predict_autofill_simple
+            return predict_autofill_simple(patterns, current_value, contexto)
+
+    except Exception as e:
+        print(f"[AI Agent] ❌ Error using Claude: {e}, using fallback")
+        # Fallback to simple prediction
+        from autofill_predictor import predict_autofill_simple
+        return predict_autofill_simple(patterns, current_value, contexto)
 
 
 def predict_with_ai_agent_sync(

@@ -146,47 +146,60 @@ export function AutocompleteInput({
           </div>
         </PopoverTrigger>
 
-        <PopoverContent className="w-full p-0" align="start">
-          <Command>
-            <CommandList>
+        <PopoverContent className="w-[600px] p-0 z-50" align="start" side="bottom" sideOffset={8}>
+          <Command className="rounded-lg border shadow-2xl">
+            <CommandList className="max-h-[400px]">
               {predictions.length === 0 && (
-                <CommandEmpty>No hay sugerencias disponibles</CommandEmpty>
+                <CommandEmpty className="py-8 text-center">
+                  <div className="text-gray-400 mb-2">🤖</div>
+                  <p className="text-sm text-gray-500">No hay sugerencias disponibles</p>
+                  <p className="text-xs text-gray-400 mt-1">Sigue escribiendo para obtener predicciones</p>
+                </CommandEmpty>
               )}
 
               {predictions.length > 0 && (
-                <CommandGroup heading="🤖 Sugerencias inteligentes">
+                <CommandGroup heading={
+                  <div className="px-2 py-2 text-sm font-semibold text-purple-700 bg-gradient-to-r from-purple-50 to-blue-50 border-b">
+                    🤖 Sugerencias Inteligentes de IA
+                  </div>
+                }>
                   {predictions.map((prediction, index) => (
                     <CommandItem
                       key={index}
                       value={prediction.valor}
                       onSelect={() => handleSelect(prediction)}
-                      className="flex items-center justify-between py-3 cursor-pointer hover:bg-blue-50"
+                      className="flex items-center justify-between p-4 cursor-pointer hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 border-b last:border-b-0 transition-all"
                     >
-                      <div className="flex flex-col gap-1 flex-1">
+                      <div className="flex flex-col gap-2 flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="font-medium">{prediction.valor}</span>
+                          <span className="font-semibold text-base text-gray-800">{prediction.valor}</span>
                           {prediction.confidence >= 0.8 && (
-                            <Badge variant="default" className="bg-green-500 text-xs">
-                              Alta confianza
+                            <Badge variant="default" className="bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs px-2">
+                              ⭐ Alta confianza
                             </Badge>
                           )}
                           {prediction.confidence >= 0.6 && prediction.confidence < 0.8 && (
-                            <Badge variant="secondary" className="text-xs">
-                              Confianza media
+                            <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 text-xs px-2">
+                              ⚡ Confianza media
                             </Badge>
                           )}
                         </div>
-                        <div className="flex items-center gap-3 text-xs text-gray-500">
-                          <span>Confianza: {(prediction.confidence * 100).toFixed(0)}%</span>
-                          <span>Usado {prediction.frecuencia} veces</span>
+                        <div className="flex items-center gap-4 text-xs text-gray-600">
+                          <span className="flex items-center gap-1">
+                            <span className="font-mono font-bold text-blue-600">{(prediction.confidence * 100).toFixed(0)}%</span>
+                            confianza
+                          </span>
+                          <span className="flex items-center gap-1">
+                            📈 Usado <span className="font-bold text-indigo-600">{prediction.frecuencia}</span> veces
+                          </span>
                           {prediction.contexto_match && (
-                            <Badge variant="outline" className="text-xs">
+                            <Badge variant="outline" className="text-xs border-purple-300 text-purple-700">
                               📊 Contexto similar
                             </Badge>
                           )}
                         </div>
                       </div>
-                      <div className="text-2xl">{prediction.icon}</div>
+                      <div className="text-3xl ml-4">{prediction.icon}</div>
                     </CommandItem>
                   ))}
                 </CommandGroup>

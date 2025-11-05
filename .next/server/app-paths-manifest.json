@@ -1,3 +1,4 @@
 {
-  "/page": "app/page.js"
+  "/facturacion/nueva/page": "app/facturacion/nueva/page.js",
+  "/api/python/autofill/route": "app/api/python/autofill/route.js"
 }

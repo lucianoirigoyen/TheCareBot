@@ -1,37 +1,41 @@
-import { NextRequest, NextResponse } from "next/server";
+/**
+ * Proxy API for Python LangGraph Autofill
+ */
+
+import { NextRequest, NextResponse } from 'next/server';
+
+const PYTHON_API_URL = process.env.NEXT_PUBLIC_PYTHON_API_URL || 'http://localhost:8000';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    // Call Python LangGraph server
-    const response = await fetch("http://localhost:8000/api/invoke/autofill", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+    const response = await fetch(`${PYTHON_API_URL}/api/invoke/autofill`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      return NextResponse.json(
-        { success: false, predictions: [], errors: [error.detail || "Unknown error"] },
-        { status: response.status }
-      );
-    }
+    const data = await response.json();
 
-    const result = await response.json();
-    return NextResponse.json(result);
-  } catch (error) {
-    console.error("Autofill API error:", error);
-    return NextResponse.json(
-      {
+    if (!response.ok) {
+      return NextResponse.json({
         success: false,
         predictions: [],
-        errors: ["Failed to connect to Python server. Is it running on port 8000?"],
-      },
-      { status: 500 }
-    );
+        error: data.detail || 'Error en backend Python',
+      }, { status: response.status });
+    }
+
+    return NextResponse.json({
+      success: data.success || true,
+      predictions: data.predictions || [],
+    });
+  } catch (error) {
+    console.error('[Autofill Proxy] Error:', error);
+    return NextResponse.json({
+      success: false,
+      predictions: [],
+      error: 'No se pudo conectar con servidor Python (puerto 8000)',
+    }, { status: 503 });
   }
 }
