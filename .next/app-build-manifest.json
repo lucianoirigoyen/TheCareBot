@@ -15,6 +15,11 @@
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/facturacion/nueva/page.js"
+    ],
+    "/facturacion/preview-demo/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/facturacion/preview-demo/page.js"
     ]
   }
 }

@@ -134,6 +134,7 @@ def generate_invoice_pdf(request: InvoiceRequest):
     Generate invoice and return PDF directly.
     """
     try:
+        print(f"[PDF Download] Generating PDF for folio request")
         detalles_dict = [d.model_dump() for d in request.detalles]
 
         result = execute_invoice_generation_sync(
@@ -145,24 +146,38 @@ def generate_invoice_pdf(request: InvoiceRequest):
             detalles=detalles_dict
         )
 
+        print(f"[PDF Download] Result keys: {result.keys()}")
+        print(f"[PDF Download] Success: {result.get('success')}")
+
         if not result.get("success"):
-            raise HTTPException(status_code=400, detail=result.get("errors", ["Unknown error"]))
+            error_msg = result.get("errors", ["Unknown error"])
+            print(f"[PDF Download] Error: {error_msg}")
+            raise HTTPException(status_code=400, detail=error_msg)
 
         # Return PDF as binary response
         pdf_bytes = result.get("pdf_bytes")
+        print(f"[PDF Download] PDF bytes present: {pdf_bytes is not None}, Length: {len(pdf_bytes) if pdf_bytes else 0}")
+
         if not pdf_bytes:
-            raise HTTPException(status_code=500, detail="PDF generation failed")
+            print(f"[PDF Download] ERROR: No PDF bytes in result")
+            raise HTTPException(status_code=500, detail=f"PDF generation failed - no pdf_bytes in result. Keys: {list(result.keys())}")
+
+        folio = result.get("folio", "unknown")
+        print(f"[PDF Download] Returning PDF for folio {folio}, size: {len(pdf_bytes)} bytes")
 
         return Response(
             content=pdf_bytes,
             media_type="application/pdf",
             headers={
-                "Content-Disposition": f"attachment; filename=boleta_{result['folio']}.pdf"
+                "Content-Disposition": f"attachment; filename=boleta_{folio}.pdf"
             }
         )
     except HTTPException:
         raise
     except Exception as e:
+        print(f"[PDF Download] Exception: {str(e)}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"PDF generation error: {str(e)}")
 
 
