@@ -1,4 +1,58 @@
+# Dependencies
 node_modules
-node_modules
-node_modules
-node_modules
+.pnp
+.pnp.js
+
+# Claude-related files (excluding these from repo)
+CLAUDE.md
+*Claude*.md
+React Native Fallbacks Complete.md
+Observability Complete - Claude.md
+Frontend UX Complete.md
+TypeScript Rules Complete.md
+Supabase Database Complete.md
+Backend Fallbacks Complete.md
+Claude Code Subagents Security.md
+
+# Documentation files (excluding from repo)
+PROJECT_STATUS_LANGGRAPH_MIGRATION.md
+DEPLOYMENT_GUIDE.md
+MIGRATION_COMPLETE.md
+FINAL_SUMMARY.md
+RUNNING_STATUS.md
+SETUP_INSTRUCTIONS.md
+TECHNICAL_SUMMARY.md
+problemas.md
+APPLE_DESIGN_SYSTEM.md
+PDF_PREVIEW_IMPLEMENTATION.md
+QUICKSTART_PDF_PREVIEW.md
+PYTHON_BACKEND_SETUP.md
+
+# Next.js build outputs
+.next/
+out/
+build/
+dist/
+
+# Environment variables
+.env*.local
+.env
+
+# Testing
+coverage/
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+*.pem
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts

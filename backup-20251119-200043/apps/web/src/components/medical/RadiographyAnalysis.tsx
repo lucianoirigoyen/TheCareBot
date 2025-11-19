@@ -29,8 +29,7 @@ export function RadiographyAnalysis() {
   const [dragActive, setDragActive] = useState(false)
   const [file, setFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
-  const [specialty, setSpecialty] = useState<'medico' | 'odontologo'>('medico')
-  const [radiographyType, setRadiographyType] = useState<'chest' | 'skull' | 'spine' | 'limb' | 'abdomen' | 'dental' | 'other'>('chest')
+  const [radiographyType, setRadiographyType] = useState<'chest' | 'skull' | 'spine' | 'limb' | 'abdomen' | 'other'>('chest')
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [analysisResult, setAnalysisResult] = useState<RadiographyAnalysisResult | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -90,16 +89,15 @@ export function RadiographyAnalysis() {
 
   const handleAnalysis = async () => {
     if (!file) return
-
+    
     setIsAnalyzing(true)
     setError(null)
-
+    
     try {
       // Simulate radiography analysis
       await new Promise(resolve => setTimeout(resolve, 4000))
-
-      // Generate specialty-specific demo results
-      const demoResult: RadiographyAnalysisResult = specialty === 'medico' ? {
+      
+      const demoResult: RadiographyAnalysisResult = {
         findings: [
           {
             region: 'Campos pulmonares',
@@ -157,72 +155,8 @@ export function RadiographyAnalysis() {
         overallConfidence: 0.84,
         processingTimeMs: 3247,
         requiresReview: true
-      } : {
-        // Dental radiography results
-        findings: [
-          {
-            region: 'Pieza 3.6 (Primer molar inferior izquierdo)',
-            description: 'Lesión radiolúcida periapical compatible con periodontitis apical crónica',
-            confidence: 0.89,
-            severity: 'moderate'
-          },
-          {
-            region: 'Pieza 3.7 (Segundo molar inferior izquierdo)',
-            description: 'Caries oclusal incipiente en esmalte',
-            confidence: 0.76,
-            severity: 'mild'
-          },
-          {
-            region: 'Cresta ósea alveolar',
-            description: 'Nivel óseo normal sin signos de pérdida ósea marginal',
-            confidence: 0.92,
-            severity: 'normal'
-          }
-        ],
-        normalAssessment: [
-          {
-            structure: 'Lámina dura',
-            status: 'normal',
-            confidence: 0.88
-          },
-          {
-            structure: 'Espacio del ligamento periodontal',
-            status: 'abnormal',
-            confidence: 0.85
-          },
-          {
-            structure: 'Cortical ósea',
-            status: 'normal',
-            confidence: 0.91
-          },
-          {
-            structure: 'Cámara pulpar',
-            status: 'normal',
-            confidence: 0.79
-          }
-        ],
-        diagnosticSuggestions: [
-          {
-            diagnosis: 'Periodontitis apical crónica en pieza 3.6',
-            confidence: 0.86,
-            supportingFindings: ['Radiolucidez periapical', 'Ensanchamiento del espacio periodontal', 'Obturación radicular presente']
-          },
-          {
-            diagnosis: 'Caries incipiente en pieza 3.7',
-            confidence: 0.73,
-            supportingFindings: ['Radiolucidez en superficie oclusal', 'Limitada a esmalte']
-          },
-          {
-            diagnosis: 'Retratamiento endodóntico pieza 3.6',
-            confidence: 0.68,
-            supportingFindings: ['Lesión periapical persistente', 'Calidad subóptima de obturación']
-          }
-        ],
-        overallConfidence: 0.81,
-        processingTimeMs: 3520,
-        requiresReview: true
       }
-
+      
       setAnalysisResult(demoResult)
     } catch (err) {
       setError('Error al analizar la imagen. Intente nuevamente.')
@@ -254,24 +188,16 @@ export function RadiographyAnalysis() {
     <div className="space-y-6">
       <div className="medical-card">
         <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center">
-          <span className="mr-2">{specialty === 'medico' ? '🩻' : '🦷'}</span>
-          {specialty === 'medico' ? 'Análisis de Radiografías Médicas' : 'Análisis de Radiografías Dentales'}
+          <span className="mr-2">🩻</span>
+          Análisis de Radiografías
         </h2>
-
+        
         <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
           <div className="flex items-start space-x-2">
             <span className="text-purple-600 mt-0.5">🤖</span>
             <div className="text-sm text-purple-800">
-              <p className="font-medium mb-1">
-                {specialty === 'medico'
-                  ? 'Análisis de imágenes médicas con IA'
-                  : 'Análisis de radiografías dentales con IA'}
-              </p>
-              <p>
-                {specialty === 'medico'
-                  ? 'Detección automática de hallazgos, evaluación de estructuras anatómicas y sugerencias diagnósticas.'
-                  : 'Detección de caries, lesiones periapicales, evaluación de nivel óseo y análisis de tratamientos endodónticos.'}
-              </p>
+              <p className="font-medium mb-1">Análisis de imágenes médicas con IA</p>
+              <p>Detección automática de hallazgos, evaluación de estructuras anatómicas y sugerencias diagnósticas.</p>
               <p className="text-xs mt-1">📸 Soporta JPG, PNG, WebP y DICOM hasta 50MB.</p>
             </div>
           </div>
@@ -344,25 +270,6 @@ export function RadiographyAnalysis() {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Especialidad Médica
-              </label>
-              <select
-                value={specialty}
-                onChange={(e) => {
-                  const newSpecialty = e.target.value as 'medico' | 'odontologo'
-                  setSpecialty(newSpecialty)
-                  // Reset radiography type when changing specialty
-                  setRadiographyType(newSpecialty === 'odontologo' ? 'dental' : 'chest')
-                }}
-                className="medical-input"
-              >
-                <option value="medico">👨‍⚕️ Médico General</option>
-                <option value="odontologo">🦷 Odontólogo</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Tipo de Radiografía
               </label>
               <select
@@ -370,46 +277,22 @@ export function RadiographyAnalysis() {
                 onChange={(e) => setRadiographyType(e.target.value as any)}
                 className="medical-input"
               >
-                {specialty === 'medico' ? (
-                  <>
-                    <option value="chest">Tórax</option>
-                    <option value="skull">Cráneo</option>
-                    <option value="spine">Columna</option>
-                    <option value="limb">Extremidades</option>
-                    <option value="abdomen">Abdomen</option>
-                    <option value="other">Otro</option>
-                  </>
-                ) : (
-                  <>
-                    <option value="dental">Radiografía Dental (Periapical)</option>
-                    <option value="panoramic">Radiografía Panorámica</option>
-                    <option value="bitewing">Radiografía Aleta de Mordida (Bitewing)</option>
-                    <option value="cephalometric">Radiografía Cefalométrica</option>
-                    <option value="occlusal">Radiografía Oclusal</option>
-                    <option value="other">Otra</option>
-                  </>
-                )}
+                <option value="chest">Tórax</option>
+                <option value="skull">Cráneo</option>
+                <option value="spine">Columna</option>
+                <option value="limb">Extremidades</option>
+                <option value="abdomen">Abdomen</option>
+                <option value="other">Otro</option>
               </select>
             </div>
 
             <div className="bg-gray-50 p-3 rounded-lg">
               <h4 className="font-medium text-gray-900 mb-2">Información del Análisis</h4>
               <div className="text-sm text-gray-600 space-y-1">
-                {specialty === 'medico' ? (
-                  <>
-                    <p>• Detección automática de anomalías</p>
-                    <p>• Evaluación de estructuras anatómicas</p>
-                    <p>• Sugerencias diagnósticas con confianza</p>
-                    <p>• Revisión médica recomendada</p>
-                  </>
-                ) : (
-                  <>
-                    <p>• Detección de caries y lesiones periapicales</p>
-                    <p>• Evaluación de nivel óseo alveolar</p>
-                    <p>• Análisis de calidad de tratamientos endodónticos</p>
-                    <p>• Identificación de calcificaciones y obturaciones</p>
-                  </>
-                )}
+                <p>• Detección automática de anomalías</p>
+                <p>• Evaluación de estructuras anatómicas</p>
+                <p>• Sugerencias diagnósticas con confianza</p>
+                <p>• Revisión médica recomendada</p>
               </div>
             </div>
           </div>

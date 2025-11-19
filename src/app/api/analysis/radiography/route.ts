@@ -18,18 +18,31 @@ export async function POST(request: NextRequest) {
     const images = formData.getAll('images') as File[];
     const sessionId = formData.get('sessionId') as string;
     const doctorId = formData.get('doctorId') as string;
+    const specialty = formData.get('specialty') as string; // 'medico' or 'odontologo'
     const bodyRegion = formData.get('bodyRegion') as string;
     const symptoms = formData.get('symptoms') as string;
     const patientAge = formData.get('patientAge') as string;
     const patientGender = formData.get('patientGender') as string;
 
     // Validate required fields
-    if (!images || images.length === 0 || !sessionId || !doctorId || !bodyRegion) {
+    if (!images || images.length === 0 || !sessionId || !doctorId || !bodyRegion || !specialty) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Imágenes, sessionId, doctorId y bodyRegion son requeridos',
+          error: 'Imágenes, sessionId, doctorId, specialty y bodyRegion son requeridos',
           code: 'MISSING_REQUIRED_FIELDS'
+        },
+        { status: 400 }
+      );
+    }
+
+    // Validate specialty
+    if (specialty !== 'medico' && specialty !== 'odontologo') {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Especialidad debe ser "medico" o "odontologo"',
+          code: 'INVALID_SPECIALTY'
         },
         { status: 400 }
       );
@@ -118,6 +131,7 @@ export async function POST(request: NextRequest) {
       success: true,
       analysisId: `radiography-${Date.now()}`,
       imageCount: images.length,
+      specialty, // Include specialty in response for frontend tracking
       bodyRegion,
       findings: result.result?.findings || [],
       recommendations: result.result?.recommendations || [],
@@ -131,6 +145,7 @@ export async function POST(request: NextRequest) {
       auditInfo: {
         analyzedBy: doctorId,
         sessionId: sessionId,
+        specialty, // Track specialty in audit trail
         ipAddress: request.headers.get('x-forwarded-for') || 'localhost'
       }
     };
