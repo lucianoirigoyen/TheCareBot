@@ -1,13 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  webpack: (config) => {
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      '@/services': require('path').resolve(__dirname, 'services'),
-      '@/packages': require('path').resolve(__dirname, 'packages'),
-    }
-    return config
-  },
+  // Clean config - no custom webpack aliases needed
 }
 
 module.exports = nextConfig

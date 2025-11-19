@@ -1,10 +1,20 @@
 'use client';
 
 import { Loader2, AlertTriangle, RefreshCw, Wifi, WifiOff, Shield } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+
+// Simple Alert component (inline to avoid missing dependency)
+const Alert = ({ children, className, variant, ...props }: React.HTMLAttributes<HTMLDivElement> & { variant?: string }) => (
+  <div className={cn('rounded-lg border p-4', variant === 'destructive' && 'border-red-500 bg-red-50', className)} {...props}>{children}</div>
+);
+const AlertTitle = ({ children, className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
+  <h5 className={cn('font-medium leading-none tracking-tight', className)} {...props}>{children}</h5>
+);
+const AlertDescription = ({ children, className, ...props }: React.HTMLAttributes<HTMLParagraphElement>) => (
+  <div className={cn('text-sm [&_p]:leading-relaxed', className)} {...props}>{children}</div>
+);
 
 interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg';
