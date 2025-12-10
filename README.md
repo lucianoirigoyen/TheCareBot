@@ -1,310 +1,508 @@
 # TheCareBot 🏥
 
-**Regulated Medical AI Assistant for Chilean Healthcare Professionals**
+**Chilean SII Electronic Invoicing System with Medical Management (MVP)**
 
-TheCareBot is a compliance-first medical AI assistant designed specifically for healthcare professionals in Chile. Built with multi-agent architecture, offline-first mobile capabilities, and strict adherence to Chilean medical data protection laws (Ley 19.628).
-
-## 🚀 Quick Start
-
-```bash
-# Initialize TheCareBot project
-npm run thecarebot:init
-
-# Run in development mode
-npm run dev
-
-# Deploy to staging
-./deploy.sh staging full
-
-# Deploy to production  
-./deploy.sh production full
-```
-
-## 🏗️ Architecture Overview
-
-TheCareBot uses a **multi-agent architecture** where specialized subagents handle different aspects of the medical system:
-
-### 🔧 Core Agents
-
-- **🗄️ Database Agent**: Supabase schemas with medical RLS policies
-- **📝 TypeScript Agent**: Zero-`any` policy with medical domain types
-- **⚡ Backend Agent**: n8n workflows with resilience patterns
-- **🖥️ Frontend Agent**: Medical dashboard with accessibility compliance
-- **🔒 Security Agent**: Chilean compliance and medical data protection
-- **📱 Mobile Agent**: Offline-first React Native app
-- **📊 Observability Agent**: Medical metrics and compliance monitoring
-
-### 🛠️ Technology Stack
-
-**Frontend & Mobile**
-- Next.js 14 (App Router) + TypeScript + TailwindCSS
-- React Native with offline-first SQLite
-- Radix UI + shadcn/ui + custom medical components
-- Progressive Web App (PWA) capabilities
-
-**Backend & Data**
-- Langraph for medical AI analysis
-- Supabase (PostgreSQL) with Row-Level Security
-- Next.js API Routes + Supabase Edge Functions
-- Claude API + Google Healthcare API integration
-- Google Calendar API for appointment scheduling
-- WhatsApp conversational AI agent
-
-**Security & Compliance**
-- AES-256-GCM encryption for all medical data
-- Chilean RUT validation with mathematical check digit
-- Medical license validation against Chilean registry
-- Immutable audit logging for compliance
-
-**DevOps & Monitoring**
-- Prometheus + Grafana for medical metrics
-- Distributed tracing for workflow visibility
-- Chilean compliance reporting and alerting
-
-## ⚖️ Medical Compliance
-
-### Chilean Law 19.628 Requirements
-
-TheCareBot is designed to meet all Chilean medical data protection requirements:
-
-- ✅ **Data Residency**: Medical data in Chilean-approved regions
-- ✅ **Patient Consent**: Explicit consent with audit trail
-- ✅ **Right to Erasure**: Secure deletion with cryptographic proof
-- ✅ **Access Logging**: Every medical access logged with purpose
-- ✅ **20-Minute Sessions**: Legally mandated session timeout
-- ✅ **RUT Protection**: Hashed storage, never raw RUTs
-
-### Critical Security Features
-
-```typescript
-// Session Management (20-minute timeout)
-const SESSION_TIMEOUT_MS = 20 * 60 * 1000; // NON-NEGOTIABLE
-
-// Chilean RUT Validation
-const isValidRUT = validateChileanRUT('12.345.678-9'); // Check digit verified
-
-// Medical License Verification  
-const doctorProfile = await verifyMedicalLicense('MED-1234567-CL');
-
-// Encrypted Patient Data
-const patientData = await encryptMedicalData(data, 'AES-256-GCM');
-```
-
-## 🏥 Medical Workflows
-
-### Supported Analysis Types
-
-1. **👤 Patient Search** (`buscar_paciente`)
-   - Chilean RUT validation and lookup
-   - Medical history retrieval
-   - Demographic information (encrypted)
-
-2. **📊 Excel Analysis** (`analizar_excel`)
-   - Medical spreadsheet processing
-   - Lab result analysis
-   - Anomaly detection with confidence scoring
-
-3. **🩻 Radiography Analysis** (`analizar_radiografia`)
-   - Medical image processing
-   - AI-powered diagnostic suggestions
-   - Anatomical structure assessment
-   - Appointment Scheduling (agendar_cita)
-
-Doctor availability check (Google Calendar API)
-
-Suggest available time slots to patients
-
-Confirm appointments and store in Supabase
-
-Notify patients via WhatsApp
-
-### Confidence Scoring
-
-All medical analyses include confidence scores:
-- 🔴 **Low (<0.7)**: Requires mandatory manual physician review
-- 🟡 **Medium (0.7-0.9)**: Acceptable with physician oversight
-- 🟢 **High (>0.9)**: High confidence AI analysis
-
-## 📱 Offline-First Mobile
-
-The React Native mobile app provides:
-
-- **24-hour minimum offline capability**
-- **Encrypted SQLite storage** for medical sessions
-- **Automatic sync** on secure WiFi networks  
-- **Biometric authentication** (Touch/Face ID)
-- **Compressed radiography** image handling
-- **Secure mobile-web** session handoff
-
-## 🚀 Development Commands
-
-### Multi-Agent Orchestration
-```bash
-npm run orchestrate:init          # Initialize all subagents
-npm run orchestrate:plan          # Generate execution plan
-npm run orchestrate:execute       # Run coordinated development
-```
-
-### Subagent-Specific Commands
-```bash
-npm run agent:database           # Database schemas & migrations
-npm run agent:types              # TypeScript types & validation
-npm run agent:backend            # n8n workflows & resilience
-npm run agent:frontend           # Next.js medical dashboard
-npm run agent:security           # Chilean compliance & encryption
-npm run agent:mobile             # React Native offline app
-npm run agent:observability      # Metrics & monitoring
-```
-
-### Medical Compliance Testing
-```bash
-npm run test:compliance          # Chilean medical law compliance
-npm run test:rut-validation      # RUT check digit validation
-npm run test:medical-license     # Medical license verification
-npm run test:audit-trail         # Audit logging verification
-npm run test:session-timeout     # 20-minute timeout testing
-npm run test:offline-sync        # Mobile offline functionality
-```
-
-### Phased Deployment
-```bash
-npm run deploy:phase1            # Infrastructure (Supabase + n8n)
-npm run deploy:phase2            # Backend APIs + authentication
-npm run deploy:phase3            # Frontend dashboard + PWA
-npm run deploy:phase4            # Mobile app + sync services
-npm run deploy:monitor           # Observability & alerting
-```
-
-## 🏗️ Project Structure
-
-```
-thecarebot/
-├── apps/
-│   ├── web/                     # Next.js medical dashboard
-│   │   ├── src/components/medical/   # Medical UI components
-│   │   ├── src/hooks/               # Medical session hooks
-│   │   └── src/stores/              # Zustand medical state
-│   └── mobile/                  # React Native offline app
-│       ├── src/storage/             # SQLite encrypted storage
-│       ├── src/services/            # Connectivity & sync
-│       └── src/screens/             # Medical screens
-├── packages/
-│   ├── database/                # Supabase schemas and migrations
-│   │   ├── migrations/              # Versioned medical schema changes
-│   │   ├── types/                   # Database types
-│   │   └── policies/                # RLS medical policies
-│   ├── types/                   # Shared TypeScript medical types
-│   │   ├── medical/                 # Medical domain types
-│   │   ├── auth/                    # Chilean medical auth types
-│   │   └── api/                     # Medical API contracts
-│   ├── validators/              # Chilean compliance validators
-│   │   ├── rut/                     # Chilean RUT validation
-│   │   ├── medical-license/         # Medical license verification
-│   │   └── schemas/                 # Zod medical schemas
-│   └── observability/           # Medical metrics and monitoring
-│       ├── metrics/                 # Medical business metrics
-│       ├── tracing/                 # Distributed medical tracing
-│       └── alerts/                  # Medical compliance alerts
-├── services/
-│   └── Langraph-workflows/           # Medical AI workflow definitions
-│       ├── analysis/                # Medical analysis workflows
-│       ├── fallbacks/               # Demo mode workflows
-│       └── monitoring/              # Workflow health checks
-└── docs/
-    ├── compliance/              # Chilean medical compliance docs
-    ├── security/                # Medical data protection specs
-    └── deployment/              # Production deployment guides
-```
-
-## 🔐 Security & Data Protection
-
-### Medical Data Classification
-
-```typescript
-type MedicalDataClassification =
-  | "public"        // Non-sensitive medical information
-  | "internal"      // Internal medical workflows
-  | "confidential"  // Patient demographics
-  | "restricted"    // Medical diagnoses and results
-  | "top_secret";   // Chilean medical license validations
-```
-
-### Session Security
-- **20-minute timeout** (legally required, cannot be extended)
-- **Visual countdown** with 2-minute warnings
-- **Secure handoff** between mobile and web
-- **Biometric locks** on mobile devices
-
-### Data Encryption
-- **AES-256-GCM** for all medical data at rest and in transit
-- **RUT hashing** with salt before database storage
-- **Medical license** encrypted validation
-- **Audit logs** with immutable timestamps
-
-## 📊 Monitoring & Observability
-
-### Medical SLOs (Service Level Objectives)
-
-- **Medical Analysis**: 95% complete within 30 seconds
-- **Patient Lookup**: 99% complete within 3 seconds  
-- **Session Timeout**: 100% accuracy at 20 minutes
-- **n8n Availability**: 99.9% uptime
-- **Mobile Sync**: 95% success on first attempt
-
-### Chilean Compliance Alerts
-
-Real-time monitoring for:
-- Session timeout violations
-- Medical data access breaches
-- RUT validation failures
-- Demo mode vs real data usage
-- Cross-border data transfer attempts
-
-## 🚨 Important Medical Warnings
-
-⚠️ **CRITICAL MEDICAL COMPLIANCE REQUIREMENTS**:
-
-- This is a **regulated medical application** requiring Chilean Law 19.628 compliance
-- Medical analysis confidence scores **below 0.7 require manual physician review**
-- Demo mode must **NEVER expose real patient data** under any circumstances
-- Chilean RUT validation is **mandatory for all patient operations**
-- All medical workflows require **immutable audit trails**
-- **20-minute session timeout is legally required** and cannot be extended
-
-⚠️ **DATA PROTECTION REQUIREMENTS**:
-
-- All medical data encrypted with **AES-256-GCM**
-- Patient RUTs **hashed with salt** before database storage
-- Medical license numbers **validated against Chilean medical registry**
-- Cross-border data transfer requires **explicit Chilean government approval**
-
-⚠️ **PERFORMANCE REQUIREMENTS**:
-
-- Medical analysis must complete **within 30 seconds** (SLA requirement)
-- Mobile app must work offline for **minimum 24 hours**
-- Database queries must complete **within 3 seconds** for patient lookup
-- System must handle **minimum 100 concurrent medical sessions**
-
-## 👥 Contributing
-
-TheCareBot follows strict medical compliance requirements. All contributions must:
-
-1. ✅ Maintain **zero-`any` TypeScript policy**
-2. ✅ Include **Chilean compliance validation**
-3. ✅ Add **medical audit logging**
-4. ✅ Follow **medical data encryption** standards
-5. ✅ Include **comprehensive testing**
-
-## 📄 License
-
-MIT License - See [LICENSE](LICENSE) for details.
-
-**⚠️ Medical Disclaimer**: This system is designed to assist healthcare professionals but does not replace medical judgment. All AI analysis results must be reviewed by licensed physicians before clinical use.
+A Next.js + Python FastAPI application for Chilean healthcare professionals featuring **real** SII-compliant electronic invoicing and **planned** medical analysis capabilities.
 
 ---
 
-## 🏥 About TheCareBot
+## ⚠️ ACTUAL PROJECT STATUS
 
-TheCareBot is designed to save lives through intelligent medical analysis while maintaining the highest standards of data protection and regulatory compliance. Built specifically for the Chilean healthcare system, it bridges the gap between advanced AI capabilities and strict medical data protection requirements.
+### ✅ **What Actually Works** (Production-Ready)
 
-**Made with ❤️ for Chilean Healthcare Professionals**
+1. **Chilean SII Electronic Invoicing**
+   - ✅ Real LangGraph workflow implementation
+   - ✅ Automatic folio assignment (database + fallback)
+   - ✅ SII-compliant XML DTE generation
+   - ✅ PDF invoice generation (ReportLab)
+   - ✅ Audit logging to Supabase
+   - ⚠️ Mock digital signature (needs real .pfx certificate)
+   - ⚠️ Mock SII SOAP submission (needs real integration)
+
+2. **Intelligent Autofill**
+   - ✅ Real LangGraph workflow
+   - ✅ Historical pattern learning (Supabase)
+   - ✅ Claude AI predictions (when patterns ≥ 5)
+   - ✅ Context enrichment
+   - ✅ Incremental learning from selections
+
+3. **Chilean RUT Validation**
+   - ✅ Mathematical check digit verification
+   - ✅ Format validation (XX.XXX.XXX-X)
+   - ✅ Client + server validation
+
+4. **Security Basics**
+   - ✅ AES-256-GCM encryption utilities
+   - ✅ Session timeout configuration
+   - ✅ Audit logging framework
+   - ✅ Environment-based config
+
+### 🚧 **What's Mock/Incomplete** (DO NOT USE IN PRODUCTION It'sm only a demo)
+
+1. **Medical Excel Analysis** - **COMPLETELY FAKE**
+   - ❌ Returns hardcoded mock data
+   - 📍 Location: [src/services/langgraph.ts:174-207](src/services/langgraph.ts#L174-L207)
+
+2. **Patient Search** - **COMPLETELY FAKE**
+   - ❌ Returns hardcoded mock data
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Node.js 18+
+- Python 3.9+
+- Supabase account
+- Anthropic API key
+
+### Installation
+
+```bash
+# Install Node.js dependencies
+npm install
+
+# Setup Python backend
+cd services/langgraph-python
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+cd ../..
+
+# Configure environment
+cp .env.example .env
+# Edit .env with your credentials
+```
+
+### Running
+
+```bash
+# Terminal 1: Python backend
+cd services/langgraph-python
+source venv/bin/activate
+python main.py
+# Runs on http://localhost:8000
+
+# Terminal 2: Next.js frontend
+npm run dev
+# Runs on http://localhost:3000
+```
+
+---
+
+## 🏗️ Actual Architecture
+
+### Technology Stack
+
+**Frontend**
+- Next.js 14 (App Router)
+- TypeScript (strict mode)
+- TailwindCSS + Radix UI + shadcn/ui
+- Zustand (state management)
+
+**Backend**
+- Python FastAPI
+- LangGraph workflows
+- Anthropic Claude Sonnet 3.5
+- Supabase PostgreSQL
+
+### Real Project Structure
+
+```
+archivos md copy/
+├── src/
+│   ├── app/
+│   │   ├── api/
+│   │   │   ├── analysis/
+│   │   │   │   ├── excel/route.ts          # ⚠️ MOCK
+│   │   │   │   └── radiography/route.ts    # ⚠️ MOCK (if exists)
+│   │   │   ├── python/                     # Proxy to FastAPI
+│   │   │   └── system/health/              # Health checks
+│   │   └── facturacion/                    # ✅ Real SII invoicing UI
+│   ├── components/
+│   │   ├── facturacion/                    # Invoice components
+│   │   ├── medical/                        # Medical UI (partial)
+│   │   ├── sii/                            # SII components
+│   │   └── ui/                             # shadcn components
+│   ├── config/                             # API config
+│   ├── hooks/                              # React hooks
+│   ├── lib/                                # Utilities
+│   ├── schemas/                            # Zod schemas
+│   ├── security/                           # Encryption, audit
+│   ├── services/
+│   │   └── langgraph.ts                    # API client (mocks here)
+│   ├── store/                              # Zustand stores
+│   ├── types/                              # TypeScript types
+│   ├── utils/                              # Utilities
+│   └── validators/                         # RUT validation
+├── services/
+│   └── langgraph-python/
+│       ├── agents/
+│       │   ├── autofill_predictor.py       # ✅ Real
+│       │   ├── intelligent_autofill_agent.py # ✅ Real
+│       │   └── pdf_generator.py            # ✅ Real
+│       ├── graphs/
+│       │   ├── autofill_workflow.py        # ✅ Real LangGraph
+│       │   └── invoice_workflow.py         # ✅ Real LangGraph
+│       ├── state/
+│       │   └── workflow_state.py           # State definitions
+│       ├── tools/
+│       │   └── supabase_client.py          # DB client
+│       └── main.py                         # FastAPI server
+├── orchestrator.ts                         # Planning tool (simulated)
+└── package.json
+```
+
+---
+
+## 📊 Working Workflows
+
+### 1. Invoice Generation ✅
+
+**Endpoint**: `POST http://localhost:8000/api/invoke/generate-invoice`
+
+**Workflow** ([services/langgraph-python/graphs/invoice_workflow.py](services/langgraph-python/graphs/invoice_workflow.py)):
+1. Assign Folio (DB or demo fallback)
+2. Validate Invoice Data
+3. Generate XML DTE
+4. Sign XML (mock signature)
+5. Generate PDF
+6. Send to SII (mock)
+
+**Request**:
+```json
+{
+  "doctor_id": "uuid",
+  "tipo_dte": 39,
+  "receptor_rut": "12.345.678-9",
+  "receptor_razon_social": "Juan Pérez",
+  "receptor_direccion": "Santiago",
+  "detalles": [
+    {
+      "descripcion": "Consulta dental",
+      "cantidad": 1,
+      "precio": 50000,
+      "total": 50000
+    }
+  ]
+}
+```
+
+### 2. Autofill Predictions ✅
+
+**Endpoint**: `POST http://localhost:8000/api/invoke/autofill`
+
+**Workflow** ([services/langgraph-python/graphs/autofill_workflow.py](services/langgraph-python/graphs/autofill_workflow.py)):
+1. Query Historical Patterns (Supabase)
+2. Enrich Context (time, day)
+3. Calculate Predictions (Claude AI if ≥5 patterns)
+
+**Request**:
+```json
+{
+  "doctor_id": "uuid",
+  "campo": "razon_social",
+  "current_value": "Juan",
+  "contexto": {}
+}
+```
+
+---
+
+## 🔧 Configuration
+
+### Environment Variables
+
+```bash
+# Next.js
+NEXT_PUBLIC_PYTHON_API_URL=http://localhost:8000
+NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=xxx
+
+# Server-only
+SUPABASE_SERVICE_ROLE_KEY=xxx
+ANTHROPIC_API_KEY=sk-ant-xxx
+
+# Chilean Company Info
+EMPRESA_RUT=12.345.678-9
+EMPRESA_RAZON_SOCIAL=Clínica Dental Example
+EMPRESA_GIRO=Servicios Odontológicos
+EMPRESA_DIRECCION=Av. Providencia 1234, Santiago
+EMPRESA_ACTIVIDAD_ECONOMICA=869090
+```
+
+### Database Schema (Supabase)
+
+```sql
+-- Autofill patterns
+CREATE TABLE autofill_patterns (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  doctor_id UUID NOT NULL,
+  campo TEXT NOT NULL,
+  valor TEXT NOT NULL,
+  frecuencia INTEGER DEFAULT 1,
+  contexto JSONB,
+  confidence_score DECIMAL,
+  last_used_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Folio management
+CREATE TABLE folios_asignados (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  tipo_dte INTEGER NOT NULL,
+  rut_empresa TEXT NOT NULL,
+  folio_desde INTEGER NOT NULL,
+  folio_hasta INTEGER NOT NULL,
+  folio_actual INTEGER NOT NULL,
+  estado TEXT DEFAULT 'activo',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Electronic invoices (boletas)
+CREATE TABLE boletas_electronicas (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  folio INTEGER NOT NULL,
+  emisor_rut TEXT NOT NULL,
+  receptor_rut TEXT NOT NULL,
+  fecha_emision TIMESTAMPTZ DEFAULT NOW(),
+  monto_neto DECIMAL NOT NULL,
+  monto_iva DECIMAL NOT NULL,
+  monto_total DECIMAL NOT NULL,
+  xml_dte TEXT,
+  track_id TEXT,
+  estado_sii TEXT DEFAULT 'pendiente',
+  glosa_estado TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Same structure for facturas_electronicas
+
+-- SII operation logs
+CREATE TABLE logs_sii (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  doctor_id UUID NOT NULL,
+  tipo_operacion TEXT NOT NULL,
+  documento_tipo INTEGER,
+  documento_folio INTEGER,
+  track_id TEXT,
+  estado TEXT NOT NULL,
+  mensaje TEXT,
+  duracion_ms INTEGER,
+  metadata JSONB,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+---
+
+## 🛠️ Development
+
+### Available Commands
+
+```bash
+npm run dev          # Start Next.js dev server
+npm run build        # Build for production
+npm run start        # Start production server
+npm run lint         # ESLint
+npm run typecheck    # TypeScript check
+```
+
+### Python Backend
+
+```bash
+cd services/langgraph-python
+source venv/bin/activate
+python main.py       # Start FastAPI
+# Docs: http://localhost:8000/docs
+```
+
+### Testing Endpoints
+
+```bash
+# Health check
+curl http://localhost:8000/health
+
+# Invoice generation
+curl -X POST http://localhost:8000/api/invoke/generate-invoice \
+  -H "Content-Type: application/json" \
+  -d '{
+    "doctor_id": "test",
+    "tipo_dte": 39,
+    "receptor_rut": "12.345.678-9",
+    "receptor_razon_social": "Test",
+    "receptor_direccion": "Test",
+    "detalles": [{
+      "descripcion": "Test",
+      "cantidad": 1,
+      "precio": 10000,
+      "total": 10000
+    }]
+  }'
+
+# Autofill
+curl -X POST http://localhost:8000/api/invoke/autofill \
+  -H "Content-Type: application/json" \
+  -d '{
+    "doctor_id": "test",
+    "campo": "razon_social",
+    "current_value": "Juan",
+    "contexto": {}
+  }'
+```
+
+---
+
+## 🚨 Critical Limitations
+
+### What's Broken/Missing
+
+1. **No Automated Tests**
+   - Zero unit tests
+   - Zero integration tests
+   - Zero E2E tests
+
+2. **Medical Features are Fake**
+   - Excel analysis is hardcoded mock
+   - Radiography analysis is hardcoded mock
+   - Patient search is hardcoded mock
+
+3. **No Mobile App**
+   - No React Native app exists
+   - No offline capabilities
+   - orchestrator.ts references it but it doesn't exist
+
+4. **Partial SII Integration**
+   - Mock digital signature (needs real .pfx cert)
+   - Mock SII submission (needs SOAP API)
+   - Demo mode fallback everywhere
+
+5. **No Observability**
+   - No Prometheus
+   - No Grafana
+   - No distributed tracing
+   - Basic console.log only
+
+---
+
+## 📋 Honest Roadmap
+
+### Phase 1: Real Medical Excel Analysis (80-120 hours)
+- [ ] Implement pandas Excel ingestion
+- [ ] Add medical range validation (JSON config)
+- [ ] Statistical anomaly detection (scipy)
+- [ ] Trend analysis (statsmodels)
+- [ ] Medical report generation
+- [ ] Real LangGraph workflow
+
+### Phase 2: Testing Infrastructure (40-60 hours)
+- [ ] Unit tests (pytest, jest)
+- [ ] Integration tests
+- [ ] E2E tests
+- [ ] CI/CD pipeline
+
+### Phase 3: Production SII (60-80 hours)
+- [ ] Real digital certificate integration
+- [ ] SOAP API client for SII
+- [ ] Certificate management
+- [ ] Error handling & retry logic
+- [ ] Full audit compliance
+
+### Phase 4: Medical Image Analysis (80-100 hours)
+- [ ] Image upload (Supabase Storage)
+- [ ] Claude Vision API integration
+- [ ] Medical image preprocessing
+- [ ] DICOM support
+- [ ] Specialist review workflow
+
+### Phase 5: Mobile App (120-160 hours)
+- [ ] React Native app
+- [ ] SQLite offline storage
+- [ ] Sync service
+- [ ] Biometric auth
+- [ ] Medical session management
+
+---
+
+## ⚖️ Chilean Compliance Status
+
+### Law 19.628 (Data Protection)
+
+- ✅ Session timeout framework exists
+- ✅ RUT validation implemented
+- ✅ Encryption utilities exist
+- ✅ Audit logging framework exists
+- ⚠️ Patient consent: NOT implemented
+- ⚠️ Right to erasure: NOT implemented
+- ⚠️ Data residency: NOT enforced
+
+### SII Compliance
+
+- ✅ Document types supported (33, 39, 61)
+- ✅ Folio management
+- ✅ XML DTE generation
+- ⚠️ Digital signature: MOCK ONLY
+- ⚠️ SII submission: MOCK ONLY
+- ❌ Production certificates: NOT integrated
+
+---
+
+## ⚠️ Disclaimers
+
+### Medical Disclaimer
+
+**DO NOT USE FOR REAL PATIENTS.** The medical analysis features return fake hardcoded data. This is a development prototype only.
+
+### Regulatory Disclaimer
+
+This application **has NOT been certified** for:
+- Chilean Law 19.628 compliance
+- SII production use
+- Medical data handling
+- Clinical deployment
+
+Production use requires:
+- Legal compliance review
+- Security audit
+- Government approvals
+- Production SII certificate
+- Comprehensive testing
+
+### Data Protection
+
+- Session timeout exists but not enforced everywhere
+- Encryption utilities exist but not used everywhere
+- Audit logs exist but coverage incomplete
+- No automated compliance monitoring
+
+---
+
+## 🤝 Contributing
+
+### Standards
+
+1. TypeScript strict mode (avoid `any`)
+2. Follow ESLint config
+3. Manual testing required (no automated tests yet)
+4. Descriptive commits
+
+### Workflow
+
+1. Fork and create feature branch
+2. Make changes
+3. Run `npm run typecheck && npm run lint`
+4. Test manually
+5. Submit PR
+
+---
+
+## 📄 License
+
+MIT License
+
+---
+
+**Current State**: Working SII invoicing MVP + Mock medical features
+**Production Ready**: NO
+**For Demo/Development Only**: YES
+
+**Made for Chilean Healthcare Professionals** 🇨🇱
