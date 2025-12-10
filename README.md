@@ -382,46 +382,6 @@ curl -X POST http://localhost:8000/api/invoke/autofill \
    - No distributed tracing
    - Basic console.log only
 
----
-
-## 📋 Honest Roadmap
-
-### Phase 1: Real Medical Excel Analysis (80-120 hours)
-- [ ] Implement pandas Excel ingestion
-- [ ] Add medical range validation (JSON config)
-- [ ] Statistical anomaly detection (scipy)
-- [ ] Trend analysis (statsmodels)
-- [ ] Medical report generation
-- [ ] Real LangGraph workflow
-
-### Phase 2: Testing Infrastructure (40-60 hours)
-- [ ] Unit tests (pytest, jest)
-- [ ] Integration tests
-- [ ] E2E tests
-- [ ] CI/CD pipeline
-
-### Phase 3: Production SII (60-80 hours)
-- [ ] Real digital certificate integration
-- [ ] SOAP API client for SII
-- [ ] Certificate management
-- [ ] Error handling & retry logic
-- [ ] Full audit compliance
-
-### Phase 4: Medical Image Analysis (80-100 hours)
-- [ ] Image upload (Supabase Storage)
-- [ ] Claude Vision API integration
-- [ ] Medical image preprocessing
-- [ ] DICOM support
-- [ ] Specialist review workflow
-
-### Phase 5: Mobile App (120-160 hours)
-- [ ] React Native app
-- [ ] SQLite offline storage
-- [ ] Sync service
-- [ ] Biometric auth
-- [ ] Medical session management
-
----
 
 ## ⚖️ Chilean Compliance Status
 
